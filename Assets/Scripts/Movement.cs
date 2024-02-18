@@ -15,16 +15,42 @@ public class Movement : MonoBehaviour
     [SerializeField] private float leftRotSpeed;
     [SerializeField] private float boostAmount;
 
+    public delegate void ThrustDelegate();
+
+    public event ThrustDelegate thrustEnable;
+    public event ThrustDelegate thrustDisable;
+
+    private bool processInputsValue;
+    public bool processInputs
+    {
+        get
+        {
+            return processInputsValue;
+        } 
+        set
+        {
+            processInputsValue = value;
+            boost = false;
+            rotatingLeft = false;
+            rotatingRight = false;
+            thrustDisable?.Invoke();
+        }
+    }
+
     private void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
+        processInputs = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        ProcessBoost();
-        ProcessRotate();
+        if (processInputs)
+        {
+            ProcessBoost();
+            ProcessRotate();
+        }
 
         Thrust();
         Rotate();
@@ -35,12 +61,16 @@ public class Movement : MonoBehaviour
         if (Input.GetKey(KeyCode.W))
         {
             boost = true;
-            Debug.Log("boosting");
         }
         else
         {
             boost = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.W))
+            thrustEnable?.Invoke();
+        if (Input.GetKeyUp(KeyCode.W)) 
+            thrustDisable?.Invoke();
     }
 
     private void ProcessRotate()
@@ -48,22 +78,12 @@ public class Movement : MonoBehaviour
         if (Input.GetKey(KeyCode.A))
         {
             rotatingLeft = true;
+            
         }
-        else
+        else if (Input.GetKey(KeyCode.D))
         {
-            rotatingLeft = false;
-
-            if (Input.GetKey(KeyCode.D))
-            {
-                rotatingRight = true;
-            }
-            else
-            {
-                rotatingRight = false;
-            }
+            rotatingRight = true;
         }
-
-        
     }
 
     private void Thrust()
@@ -90,6 +110,18 @@ public class Movement : MonoBehaviour
         }
 
         rigidBody.freezeRotation = false;
+        
+    }
+
+    private void LateUpdate()
+    {
+        rotatingLeft = false;
+        rotatingRight = false;
+    }
+
+    public bool IsThrusting()
+    {
+        return boost;
     }
 
 }
