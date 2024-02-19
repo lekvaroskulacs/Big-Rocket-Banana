@@ -4,26 +4,42 @@ using UnityEngine;
 
 public class RocketSFXHandler : MonoBehaviour
 {
-    private AudioSource thrusting;
-    private Movement movement;
 
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] AudioClip engine;
+    [SerializeField] AudioClip explosion;
+    [SerializeField] AudioClip success;
+
+    private AudioSource source;
+
+
+    private void Start()
     {
-        movement = GetComponent<Movement>();
-        thrusting = GetComponent<AudioSource>();
-        movement.thrustEnable += thrustEnableSFX;
-        movement.thrustDisable += thrustDisableSFX;
+        source = GetComponent<AudioSource>();
     }
 
-    private void thrustEnableSFX()
+    public void thrustEnableSFX()
     {
-        thrusting.time = 0.5f;
-        thrusting?.Play();
+        source.time = 0.5f;
+        source.loop = true;
+        source?.PlayOneShot(engine);
     }
 
-    private void thrustDisableSFX()
+    public void thrustDisableSFX()
     {
-        thrusting?.Stop();
+        source?.Stop();
+        source.loop = false;
+    }
+
+    public void explosionSFX()
+    {
+        
+        if (!source.isPlaying)
+            source.PlayOneShot(explosion);
+    }
+
+    public void successSFX()
+    {
+        if (!source.isPlaying)
+            source.PlayOneShot(success);
     }
 }

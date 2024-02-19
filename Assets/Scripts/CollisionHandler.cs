@@ -5,11 +5,17 @@ using UnityEngine.SceneManagement;
 
 public class CollisionHandler : MonoBehaviour
 {
+
+    [SerializeField] private float sceneLoadDelay = 1f;
+    
     Movement movement;
+    RocketSFXHandler sfx;
+
 
     private void Start()
     {
         movement = GetComponent<Movement>();
+        sfx = GetComponent<RocketSFXHandler>();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -32,34 +38,37 @@ public class CollisionHandler : MonoBehaviour
 
     private void Die()
     {
-        movement.processInputs = false;
-        Invoke("ReloadCurrentScene", 1);
+        movement.enabled = false;
+
+        sfx.explosionSFX();
+
+        Invoke("ReloadCurrentScene", sceneLoadDelay);
     }
 
     private void ReloadCurrentScene()
     { 
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        movement.processInputs = true;
     }
 
     private void LandingPad()
     {
-        movement.processInputs = false;
-        Invoke("LoadNextScene", 1);
+        movement.enabled = false;
+
+        sfx.successSFX();
+
+        Invoke("LoadNextScene", sceneLoadDelay);
     }
 
     private void LoadNextScene()
     {
-        if (SceneManager.sceneCountInBuildSettings >= SceneManager.GetActiveScene().buildIndex + 1)
+        if (SceneManager.sceneCountInBuildSettings <= SceneManager.GetActiveScene().buildIndex + 1)
         {
-
             SceneManager.LoadScene(0);
         }
         else
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
-        movement.processInputs = true;
     }
 
     private void LaunchPad()

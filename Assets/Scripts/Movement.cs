@@ -5,52 +5,31 @@ using UnityEngine.UIElements;
 
 public class Movement : MonoBehaviour
 {
-    private Rigidbody rigidBody;
-
-    private bool rotatingLeft = false;
-    private bool rotatingRight = false;
-    private bool boost = false;
 
     [SerializeField] private float rightRotSpeed;
     [SerializeField] private float leftRotSpeed;
     [SerializeField] private float boostAmount;
 
-    public delegate void ThrustDelegate();
+    private Rigidbody rigidBody;
+    private RocketSFXHandler sfx;
 
-    public event ThrustDelegate thrustEnable;
-    public event ThrustDelegate thrustDisable;
+    private bool rotatingLeft = false;
+    private bool rotatingRight = false;
+    private bool boost = false;
 
-    private bool processInputsValue;
-    public bool processInputs
-    {
-        get
-        {
-            return processInputsValue;
-        } 
-        set
-        {
-            processInputsValue = value;
-            boost = false;
-            rotatingLeft = false;
-            rotatingRight = false;
-            thrustDisable?.Invoke();
-        }
-    }
 
     private void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
-        processInputs = true;
+        sfx = GetComponent<RocketSFXHandler>();
+   
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (processInputs)
-        {
-            ProcessBoost();
-            ProcessRotate();
-        }
+        ProcessBoost();
+        ProcessRotate();
 
         Thrust();
         Rotate();
@@ -68,9 +47,9 @@ public class Movement : MonoBehaviour
         }
 
         if (Input.GetKeyDown(KeyCode.W))
-            thrustEnable?.Invoke();
+            sfx.thrustEnableSFX();
         if (Input.GetKeyUp(KeyCode.W)) 
-            thrustDisable?.Invoke();
+            sfx.thrustDisableSFX();
     }
 
     private void ProcessRotate()
@@ -122,6 +101,11 @@ public class Movement : MonoBehaviour
     public bool IsThrusting()
     {
         return boost;
+    }
+
+    public void OnDisable()
+    {
+        sfx.thrustDisableSFX();
     }
 
 }
