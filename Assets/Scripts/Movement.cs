@@ -12,6 +12,9 @@ public class Movement : MonoBehaviour
 
     private Rigidbody rigidBody;
     private RocketSFXHandler sfx;
+    [SerializeField] ParticleSystem mainThrustParticles;
+    [SerializeField] ParticleSystem leftThrustParticles;
+    [SerializeField] ParticleSystem rightThrustParticles;
 
     private bool rotatingLeft = false;
     private bool rotatingRight = false;
@@ -36,7 +39,7 @@ public class Movement : MonoBehaviour
     }
 
     void ProcessBoost()
-    {    
+    {
         if (Input.GetKey(KeyCode.W))
         {
             boost = true;
@@ -46,10 +49,20 @@ public class Movement : MonoBehaviour
             boost = false;
         }
 
+    }
+
+    private void ProcessBoostIntrinsicEffects()
+    {
         if (Input.GetKeyDown(KeyCode.W))
+        {
             sfx.thrustEnableSFX();
-        if (Input.GetKeyUp(KeyCode.W)) 
+            mainThrustParticles.Play();
+        }
+        if (Input.GetKeyUp(KeyCode.W))
+        {
             sfx.thrustDisableSFX();
+            mainThrustParticles.Stop();
+        }
     }
 
     private void ProcessRotate()
@@ -63,6 +76,7 @@ public class Movement : MonoBehaviour
         {
             rotatingRight = true;
         }
+
     }
 
     private void Thrust()
@@ -72,6 +86,8 @@ public class Movement : MonoBehaviour
         {
             rigidBody.AddRelativeForce(upThrust * boostAmount * Time.deltaTime);
         }
+
+        ProcessBoostIntrinsicEffects();
     }
 
     private void Rotate()
@@ -80,16 +96,59 @@ public class Movement : MonoBehaviour
 
         if (rotatingLeft)
         {
-            transform.Rotate(new Vector3(0, 0, leftRotSpeed * Time.deltaTime));
+            RotateRocketInDirection(Direction.left);
         }
 
         if (rotatingRight)
         {
-            transform.Rotate(new Vector3(0, 0, -rightRotSpeed * Time.deltaTime));
+            RotateRocketInDirection(Direction.right);
         }
 
-        rigidBody.freezeRotation = false;
+        RotationParticles();
+        rigidBody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezePositionZ;
         
+    }
+
+    private void RotationParticles()
+    {
+        if (rotatingLeft)
+        {
+            if (!rightThrustParticles.isPlaying)
+                rightThrustParticles.Play();
+        }
+        else if (rotatingRight)
+        {
+            if (!leftThrustParticles.isPlaying)
+                leftThrustParticles.Play();
+        }
+        else
+        {
+            if (rightThrustParticles.isPlaying)
+                rightThrustParticles.Stop();
+            if (leftThrustParticles.isPlaying)
+                leftThrustParticles.Stop();
+        }
+    }
+
+    private enum Direction { left, right };
+
+    private void RotateRocketInDirection(Direction dir)
+    {
+        float signum;
+        float rotSpeed;
+        if (dir == Direction.left)
+        {
+            signum = 1;
+            rotSpeed = leftRotSpeed;
+        }
+        else
+        {
+            signum = -1;
+            rotSpeed = rightRotSpeed;
+        }
+        
+
+        transform.Rotate(new Vector3(0, 0, signum * rotSpeed * Time.deltaTime));
     }
 
     private void LateUpdate()
@@ -98,14 +157,16 @@ public class Movement : MonoBehaviour
         rotatingRight = false;
     }
 
-    public bool IsThrusting()
+    public bool IsThrusting()   
     {
         return boost;
     }
 
     public void OnDisable()
     {
-        sfx.thrustDisableSFX();
+        sfx?.thrustDisableSFX();
     }
+
+
 
 }
