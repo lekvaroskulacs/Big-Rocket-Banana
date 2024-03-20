@@ -1,0 +1,5 @@
+moving obstacles going in every direction, just chaos
+
+thorn trap (suddenly rising from the ground)
++
+moving obstacle for moving thorn trap
